@@ -19,6 +19,7 @@ namespace universe_canvas.Controllers
         }
 
         [HttpPost]
+        [Route("startTimer")]
         public IActionResult StartTimer()
         {
             if (!_timer.IsTimerStarted)
@@ -27,6 +28,7 @@ namespace universe_canvas.Controllers
         }
 
         [HttpPost]
+        [Route("stopTimer")]
         public IActionResult StopTimer()
         {
             _timer.StopTimer();
