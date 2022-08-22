@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 using universe_canvas.Hubs;
-using universe_canvas.Models;
+using universe_canvas.TimerFeatures;
 
 namespace universe_canvas.Controllers
 {
@@ -15,17 +10,27 @@ namespace universe_canvas.Controllers
     public class CanvasController : ControllerBase
     {
         private readonly IHubContext<CanvasHub> _hub;
+        private readonly TimerManager _timer;
         
-        public CanvasController(IHubContext<CanvasHub> hub)
+        public CanvasController(IHubContext<CanvasHub> hub, TimerManager timer)
         {
             _hub = hub;
+            _timer = timer;
         }
 
-        [HttpGet]
-        public IActionResult Get()
+        [HttpPost]
+        public IActionResult StartTimer()
         {
-            _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
-            return Ok();
+            if (!_timer.IsTimerStarted)
+                _timer.PrepareTimer(500, () => _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+            return NoContent();
+        }
+
+        [HttpPost]
+        public IActionResult StopTimer()
+        {
+            _timer.StopTimer();
+            return NoContent();
         }
     }
 }

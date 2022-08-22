@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using universe_canvas.Hubs;
+using universe_canvas.TimerFeatures;
 
 namespace universe_canvas
 {
@@ -35,6 +36,7 @@ namespace universe_canvas
                     .AllowAnyHeader()
                     .AllowCredentials());
             });
+            services.AddSingleton<TimerManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
