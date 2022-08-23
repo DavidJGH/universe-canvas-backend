@@ -33,6 +33,7 @@ namespace universe_canvas
                 options.AddPolicy("CorsPolicy", builder => builder
                     .WithOrigins("http://localhost:4200")
                     .WithOrigins("https://universe-canvas.web.app")
+                    .WithOrigins("https://canvas-backend.herdlicka.dev")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials());
