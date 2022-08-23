@@ -6,7 +6,6 @@ using universe_canvas.TimerFeatures;
 namespace universe_canvas.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
     public class CanvasController : ControllerBase
     {
         private readonly IHubContext<CanvasHub> _hub;
@@ -19,7 +18,7 @@ namespace universe_canvas.Controllers
         }
 
         [HttpPost]
-        [Route("startTimer")]
+        [Route("api/[controller]/startTimer")]
         public IActionResult StartTimer()
         {
             if (!_timer.IsTimerStarted)
@@ -28,7 +27,7 @@ namespace universe_canvas.Controllers
         }
 
         [HttpPost]
-        [Route("stopTimer")]
+        [Route("api/[controller]/stopTimer")]
         public IActionResult StopTimer()
         {
             _timer.StopTimer();
