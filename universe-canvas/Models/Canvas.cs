@@ -1,10 +1,16 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace universe_canvas.Models
 {
     public class Canvas
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public int[] Content { get; set; }

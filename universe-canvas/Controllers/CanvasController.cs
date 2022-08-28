@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using universe_canvas.Hubs;
-using universe_canvas.TimerFeatures;
+using universe_canvas.Services;
 
 namespace universe_canvas.Controllers
 {
@@ -9,9 +9,9 @@ namespace universe_canvas.Controllers
     public class CanvasController : ControllerBase
     {
         private readonly IHubContext<CanvasHub> _hub;
-        private readonly TimerManager _timer;
+        private readonly TimerService _timer;
         
-        public CanvasController(IHubContext<CanvasHub> hub, TimerManager timer)
+        public CanvasController(IHubContext<CanvasHub> hub, TimerService timer)
         {
             _hub = hub;
             _timer = timer;
