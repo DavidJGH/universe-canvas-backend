@@ -1,31 +1,36 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace universe_canvas.TimerFeatures
 {
     public class TimerManager
     {
-        private Timer? _timer;
-        private AutoResetEvent? _autoResetEvent;
-        public bool IsTimerStarted { get; set; }
+        private Dictionary<Guid, Timer> _timers = new();
         
-        public void PrepareTimer(int period, Action action)
+        public Guid AddTimer(int period, Action action)
         {
-            if (IsTimerStarted)
-            {
-                StopTimer();
-            }
-            
-            _autoResetEvent = new AutoResetEvent(false);
-            _timer = new Timer((_) => action.Invoke(), _autoResetEvent, period, period);
-            IsTimerStarted = true;
+            var id = Guid.NewGuid();
+            _timers.Add(id,
+                new Timer(_ => action.Invoke(), new AutoResetEvent(false), period, period));
+
+            return id;
         }
 
-        public void StopTimer()
+        public void StopTimer(Guid id)
         {
-            IsTimerStarted = false;
-            _timer?.Dispose();
+            _timers[id].Dispose();
+            _timers.Remove(id);
+        }
+
+        public void StopAllTimers()
+        {
+            foreach (var timer in _timers.Values)
+            {
+                timer.Dispose();
+            }
+            _timers.Clear();
         }
     }
 }

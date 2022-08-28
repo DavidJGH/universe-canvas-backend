@@ -21,8 +21,12 @@ namespace universe_canvas.Controllers
         [Route("api/[controller]/startTimer")]
         public IActionResult StartTimer()
         {
-            if (!_timer.IsTimerStarted)
-                _timer.PrepareTimer(500, () => _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+            _timer.AddTimer(60000, () => _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+            _timer.AddTimer(500, () =>
+            {
+                _hub.Clients.All.SendAsync("TransferCanvasChanges", CanvasHub.CanvasChanges);
+                CanvasHub.ClearChanges();
+            });
             return NoContent();
         }
 
@@ -30,7 +34,7 @@ namespace universe_canvas.Controllers
         [Route("api/[controller]/stopTimer")]
         public IActionResult StopTimer()
         {
-            _timer.StopTimer();
+            _timer.StopAllTimers();
             return NoContent();
         }
     }

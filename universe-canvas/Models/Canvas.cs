@@ -23,4 +23,48 @@ namespace universe_canvas.Models
             Content[y * Width + x] = c;
         }
     }
+
+    public class PartialCanvas
+    {
+        public List<PixelInfo> Content { get; set; }
+
+        public PartialCanvas()
+        {
+            Content = new List<PixelInfo>();
+        }
+
+        public void SetPixel(int x, int y, int c)
+        {
+            Content.Add(new PixelInfo(x, y, c));
+        }
+
+        public void Clear()
+        {
+            Content.Clear();
+        }
+    }
+
+    public class PixelInfo
+    {
+        public Vector Position { get; set; }
+        public int ColorIndex { get; set; }
+
+        public PixelInfo(int x, int y, int colorIndex)
+        {
+            Position = new Vector(x, y);
+            ColorIndex = colorIndex;
+        }
+    }
+
+    public class Vector
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+
+        public Vector(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
 }

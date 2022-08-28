@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,6 +13,8 @@ namespace universe_canvas
 {
     public class Startup
     {
+        private TimerManager _timer;
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -41,7 +44,7 @@ namespace universe_canvas
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IHubContext<CanvasHub> hub, TimerManager timer)
         {
             if (env.IsDevelopment())
             {
@@ -71,6 +74,22 @@ namespace universe_canvas
                 endpoints.MapControllers();
                 endpoints.MapHub<CanvasHub>("/canvasHub");
             });
+            
+            applicationLifetime.ApplicationStopping.Register(OnShutdown);
+            
+            // service startup
+            _timer = timer;
+            _timer.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+            _timer.AddTimer(500, () =>
+            {
+                hub.Clients.All.SendAsync("TransferCanvasChanges", CanvasHub.CanvasChanges);
+                CanvasHub.ClearChanges();
+            });
+        }
+        
+        private void OnShutdown()
+        {
+            _timer?.StopAllTimers();
         }
     }
 }
