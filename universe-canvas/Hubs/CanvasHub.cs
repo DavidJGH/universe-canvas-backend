@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 using universe_canvas.Models;
 
@@ -28,15 +25,23 @@ namespace universe_canvas.Hubs
             "#41a6f6",
             "#73eff7"
         });
-        
+
+        public static PartialCanvas CanvasChanges = new();
+
         public void SetPixel(int x, int y, int c)
         {
             Canvas.SetPixel(x, y, c);
+            CanvasChanges.SetPixel(x, y, c);
         }
 
         public Canvas GetCanvas()
         {
             return Canvas;
+        }
+
+        public static void ClearChanges()
+        {
+            CanvasChanges.Clear();
         }
     }
 }
