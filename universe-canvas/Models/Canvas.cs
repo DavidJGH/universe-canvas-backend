@@ -26,7 +26,7 @@ namespace universe_canvas.Models
 
     public class PartialCanvas
     {
-        public static List<PixelInfo> Content { get; set; }
+        public List<PixelInfo> Content { get; set; }
 
         public PartialCanvas()
         {
