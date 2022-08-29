@@ -16,7 +16,8 @@ namespace universe_canvas
 {
     public class Startup
     {
-        private TimerService _timer;
+        private TimerService _timerService;
+        private CanvasService _canvasService;
         
         public Startup(IConfiguration configuration)
         {
@@ -81,6 +82,8 @@ namespace universe_canvas
                 endpoints.MapHub<CanvasHub>("/canvasHub");
             });
             
+            _timerService = timerService;
+            _canvasService = canvasService;
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
             
             // service startup
@@ -96,13 +99,12 @@ namespace universe_canvas
                     await canvasService.InsertAsync(CanvasHub.Canvas);
                     CanvasHub.Canvas.Id = (await canvasService.GetAsync())?.Id;
                 }
-                _timer = timerService;
-                _timer.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
-                _timer.AddTimer(60000, () =>
+                _timerService.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+                _timerService.AddTimer(10 * 60000, () =>
                 {
                     Task.Run(async () => await canvasService.ReplaceAsync(CanvasHub.Canvas));
                 });
-                _timer.AddTimer(500, () =>
+                _timerService.AddTimer(500, () =>
                 {
                     hub.Clients.All.SendAsync("TransferCanvasChanges", CanvasHub.CanvasChanges);
                     CanvasHub.ClearChanges();
@@ -112,7 +114,10 @@ namespace universe_canvas
         
         private void OnShutdown()
         {
-            _timer?.StopAllTimers();
+            _timerService.StopAllTimers();
+            Task.Run(async () =>
+                    await _canvasService.InsertAsync(CanvasHub.Canvas)
+            );
         }
     }
 }
