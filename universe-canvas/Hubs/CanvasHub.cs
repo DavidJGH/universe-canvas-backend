@@ -15,7 +15,6 @@ namespace universe_canvas.Hubs
             "#333c57",
             "#5d275d",
             "#b13e53",
-            "#9c6137",
             "#ef7d57",
             "#ffcd75",
             "#a7f070",
@@ -24,6 +23,7 @@ namespace universe_canvas.Hubs
             "#3b5dc9",
             "#55cdfc",
             "#ffaec9",
+            "#9c6137",
         });
 
         public static PartialCanvas CanvasChanges = new();
