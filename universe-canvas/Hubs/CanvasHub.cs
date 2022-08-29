@@ -6,7 +6,7 @@ namespace universe_canvas.Hubs
 {
     public class CanvasHub : Hub
     {
-        public static Canvas Canvas { get; set; } = new(100, 100, 1, new List<string>
+        public static Canvas Canvas { get; set; } = new(200, 200, 1, new List<string>
         {
             "#1a1c2c",
             "#f4f4f4",

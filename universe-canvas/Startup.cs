@@ -16,8 +16,8 @@ namespace universe_canvas
 {
     public class Startup
     {
-        private TimerService _timerService;
-        private CanvasService _canvasService;
+        private TimerService? _timerService;
+        private CanvasService? _canvasService;
         
         public Startup(IConfiguration configuration)
         {
@@ -51,7 +51,7 @@ namespace universe_canvas
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IHubContext<CanvasHub> hub, TimerService timerService, CanvasService canvasService)
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IHubContext<CanvasHub> hub, TimerService? timerService, CanvasService? canvasService)
         {
             if (env.IsDevelopment())
             {
@@ -89,7 +89,7 @@ namespace universe_canvas
             // service startup
             Task.Run(async () =>
             {
-                Canvas? canvas = await canvasService.GetAsync();
+                Canvas? canvas = await canvasService!.GetAsync();
                 if (canvas != null)
                 {
                     CanvasHub.Canvas = canvas;
@@ -99,25 +99,26 @@ namespace universe_canvas
                     await canvasService.InsertAsync(CanvasHub.Canvas);
                     CanvasHub.Canvas.Id = (await canvasService.GetAsync())?.Id;
                 }
-                _timerService.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+                _timerService!.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
                 _timerService.AddTimer(10 * 60000, () =>
                 {
-                    Task.Run(async () => await canvasService.ReplaceAsync(CanvasHub.Canvas));
+                    Task.Run(async () => await canvasService.ReplaceAsync(CanvasHub.Canvas)).Wait();
                 });
                 _timerService.AddTimer(500, () =>
                 {
                     hub.Clients.All.SendAsync("TransferCanvasChanges", CanvasHub.CanvasChanges);
                     CanvasHub.ClearChanges();
                 });
-            });
+            }).Wait();
         }
         
         private void OnShutdown()
         {
-            _timerService.StopAllTimers();
+            _timerService?.StopAllTimers();
             Task.Run(async () =>
-                    await _canvasService.InsertAsync(CanvasHub.Canvas)
-            );
+            {
+                if (_canvasService != null) await _canvasService.ReplaceAsync(CanvasHub.Canvas);
+            }).Wait();
         }
     }
 }
