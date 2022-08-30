@@ -31,16 +31,6 @@ namespace universe_canvas.Models
             Content[y * Width + x] = c;
         }
 
-        public void FixSize()
-        {
-            if (Content.Length > Width * Height)
-            {
-                var contentList = Content.ToList();
-                contentList.RemoveRange(Height * Width, Content.Length - Height * Width);
-                Content = contentList.ToArray();
-            }
-        }
-
         public void SetSize(int width, int height, bool forceSmaller)
         {
             if ((width < Width || height < Height) && !forceSmaller)

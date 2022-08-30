@@ -32,14 +32,6 @@ public class CanvasController : ControllerBase
         _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
         return Ok();
     }
-    
-    [HttpPost]
-    [Route("fixSize")]
-    public IActionResult FixSize(int width, int height, bool forceSmaller = false)
-    {
-        CanvasHub.Canvas.FixSize();
-        return Ok();
-    }
         
     [HttpPost]
     [Route("addColor")]
