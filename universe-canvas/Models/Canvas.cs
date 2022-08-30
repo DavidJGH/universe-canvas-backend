@@ -15,7 +15,7 @@ namespace universe_canvas.Models
         public int Height { get; set; }
         public int[] Content { get; set; }
         public List<string> Palette { get; set; }
-        public int StartColor { get; }
+        public int StartColor { get; set; }
 
         public Canvas(int width, int height, int startColor, List<string> palette)
         {
