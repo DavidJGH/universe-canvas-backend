@@ -31,6 +31,16 @@ namespace universe_canvas.Models
             Content[y * Width + x] = c;
         }
 
+        public void FixSize()
+        {
+            if (Content.Length > Width * Height)
+            {
+                var contentList = Content.ToList();
+                contentList.RemoveRange(Height * Width, Content.Length - Height * Width);
+                Content = contentList.ToArray();
+            }
+        }
+
         public void SetSize(int width, int height, bool forceSmaller)
         {
             if ((width < Width || height < Height) && !forceSmaller)
@@ -40,11 +50,11 @@ namespace universe_canvas.Models
             var contentList = Content.ToList();
             if (height < Height)
             {
-                contentList.RemoveRange(height * Width, (Height - height) * width);
+                contentList.RemoveRange(height * Width, (Height - height) * Width);
             }
             if (height > Height)
             {
-                contentList.AddRange(Enumerable.Repeat(StartColor, (height - Height) * width));
+                contentList.AddRange(Enumerable.Repeat(StartColor, (height - Height) * Width));
             }
             Height = height;
             if (width < Width)

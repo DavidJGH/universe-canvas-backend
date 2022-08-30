@@ -1,8 +1,10 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using universe_canvas.Hubs;
+using universe_canvas.Models;
 
 namespace universe_canvas.Controllers;
 
@@ -28,6 +30,14 @@ public class CanvasController : ControllerBase
         }
         CanvasHub.Canvas.SetSize(width, height, forceSmaller);
         _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
+        return Ok();
+    }
+    
+    [HttpPost]
+    [Route("fixSize")]
+    public IActionResult FixSize(int width, int height, bool forceSmaller = false)
+    {
+        CanvasHub.Canvas.FixSize();
         return Ok();
     }
         
