@@ -20,13 +20,13 @@ public class CanvasController : ControllerBase
 
     [HttpPost]
     [Route("setSize")]
-    public IActionResult SetSize(int width, int height)
+    public IActionResult SetSize(int width, int height, bool forceSmaller = false)
     {
         if (width < CanvasHub.Canvas.Width || height < CanvasHub.Canvas.Height || width > 1000 || height > 1000)
         {
             return BadRequest("Dimension out of range");
         }
-        CanvasHub.Canvas.SetSize(width, height, false);
+        CanvasHub.Canvas.SetSize(width, height, forceSmaller);
         _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
         return Ok();
     }

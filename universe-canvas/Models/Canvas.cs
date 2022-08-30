@@ -15,15 +15,14 @@ namespace universe_canvas.Models
         public int Height { get; set; }
         public int[] Content { get; set; }
         public List<string> Palette { get; set; }
-
-        private int StartColor { get; }
+        public int StartColor { get; }
 
         public Canvas(int width, int height, int startColor, List<string> palette)
         {
             Width = width;
             Height = height;
-            Content = Enumerable.Repeat(startColor, width * height).ToArray();
             StartColor = startColor;
+            Content = Enumerable.Repeat(startColor, width * height).ToArray();
             Palette = palette;
         }
 
