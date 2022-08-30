@@ -1,23 +1,29 @@
 #nullable enable
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ScottBrady91.AspNetCore.Identity;
 using universe_canvas.Hubs;
 using universe_canvas.Models;
+using universe_canvas.Repositories;
 using universe_canvas.Services;
 
 namespace universe_canvas
 {
     public class Startup
     {
-        private TimerService? _timerService;
-        private CanvasService? _canvasService;
+        private ITimerService? _timerService;
+        private ICanvasRepository? _canvasRepository;
         
         public Startup(IConfiguration configuration)
         {
@@ -29,6 +35,26 @@ namespace universe_canvas
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(x =>
+                {
+                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                }).AddJwtBearer(o =>
+                {
+                    var key = Encoding.UTF8.GetBytes(Configuration["JWT:Key"]);
+                    o.SaveToken = true;
+                    o.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = Configuration["JWT:Issuer"],
+                        ValidAudience = Configuration["JWT:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
+                    };
+                });
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -44,14 +70,19 @@ namespace universe_canvas
                     .AllowAnyHeader()
                     .AllowCredentials());
             });
-            services.AddSingleton<TimerService>();
             services.Configure<DatabaseSettings>(
                 Configuration.GetSection("Database"));
-            services.AddSingleton<CanvasService>();
+            
+            services.AddSingleton<ITimerService, TimerService>();
+            services.AddSingleton<IPasswordHasher<User>, BCryptPasswordHasher<User>>();
+            
+            // repositories
+            services.AddSingleton<IUserRepository, UserRepository>();
+            services.AddSingleton<ICanvasRepository, CanvasRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IHubContext<CanvasHub> hub, TimerService? timerService, CanvasService? canvasService)
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IHubContext<CanvasHub> hub, ITimerService? timerService, ICanvasRepository? canvasRepository)
         {
             if (env.IsDevelopment())
             {
@@ -74,6 +105,7 @@ namespace universe_canvas
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -83,26 +115,26 @@ namespace universe_canvas
             });
             
             _timerService = timerService;
-            _canvasService = canvasService;
+            _canvasRepository = canvasRepository;
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
             
             // service startup
             Task.Run(async () =>
             {
-                Canvas? canvas = await canvasService!.GetAsync();
+                Canvas? canvas = await canvasRepository!.GetAsync();
                 if (canvas != null)
                 {
                     CanvasHub.Canvas = canvas;
                 }
                 else
                 {
-                    await canvasService.InsertAsync(CanvasHub.Canvas);
-                    CanvasHub.Canvas.Id = (await canvasService.GetAsync())?.Id;
+                    await canvasRepository.InsertAsync(CanvasHub.Canvas);
+                    CanvasHub.Canvas.Id = (await canvasRepository.GetAsync())?.Id;
                 }
-                _timerService!.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
-                _timerService.AddTimer(10 * 60000, () =>
+                // _timerService!.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+                _timerService!.AddTimer(10 * 60000, () =>
                 {
-                    Task.Run(async () => await canvasService.ReplaceAsync(CanvasHub.Canvas)).Wait();
+                    Task.Run(async () => await canvasRepository.ReplaceAsync(CanvasHub.Canvas)).Wait();
                 });
                 _timerService.AddTimer(500, () =>
                 {
@@ -117,7 +149,7 @@ namespace universe_canvas
             _timerService?.StopAllTimers();
             Task.Run(async () =>
             {
-                if (_canvasService != null) await _canvasService.ReplaceAsync(CanvasHub.Canvas);
+                if (_canvasRepository != null) await _canvasRepository.ReplaceAsync(CanvasHub.Canvas);
             }).Wait();
         }
     }

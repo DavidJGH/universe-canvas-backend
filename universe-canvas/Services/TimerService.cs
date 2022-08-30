@@ -5,9 +5,9 @@ using System.Threading;
 
 namespace universe_canvas.Services;
 
-public class TimerService
+public class TimerService : ITimerService
 {
-    private Dictionary<Guid, Timer> _timers = new();
+    private readonly Dictionary<Guid, Timer> _timers = new();
         
     public Guid AddTimer(int period, Action action)
     {
