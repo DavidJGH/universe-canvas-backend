@@ -131,7 +131,7 @@ namespace universe_canvas
                     await canvasRepository.InsertAsync(CanvasHub.Canvas);
                     CanvasHub.Canvas.Id = (await canvasRepository.GetAsync())?.Id;
                 }
-                // _timerService!.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
+                _timerService!.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
                 _timerService!.AddTimer(10 * 60000, () =>
                 {
                     Task.Run(async () => await canvasRepository.ReplaceAsync(CanvasHub.Canvas)).Wait();
