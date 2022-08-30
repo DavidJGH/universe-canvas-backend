@@ -22,7 +22,7 @@ public class CanvasController : ControllerBase
     [Route("setSize")]
     public IActionResult SetSize(int width, int height, bool forceSmaller = false)
     {
-        if (width < CanvasHub.Canvas.Width || height < CanvasHub.Canvas.Height || width > 1000 || height > 1000)
+        if (width < (forceSmaller ? 0 : CanvasHub.Canvas.Width) || height < (forceSmaller ? 0 : CanvasHub.Canvas.Height) || width > 1000 || height > 1000)
         {
             return BadRequest("Dimension out of range");
         }
