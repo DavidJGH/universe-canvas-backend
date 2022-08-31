@@ -57,7 +57,7 @@ public class CanvasController : ControllerBase
         {
             return BadRequest("Index out of range");
         }
-        _canvasService.Canvas.Palette.RemoveAt(index);
+        _canvasService.Canvas.RemoveColor(index);
         _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
         return Ok();
     }
@@ -70,7 +70,7 @@ public class CanvasController : ControllerBase
         {
             return BadRequest("Palette empty");
         }
-        _canvasService.Canvas.Palette.RemoveAt(_canvasService.Canvas.Palette.Count-1);
+        _canvasService.Canvas.RemoveColor(_canvasService.Canvas.Palette.Count-1);
         _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
         return Ok();
     }

@@ -31,6 +31,28 @@ namespace universe_canvas.Models
             Content[y * Width + x] = c;
         }
 
+        public void RemoveColor(int colorIndex)
+        {
+            if (colorIndex < 0 || colorIndex >= Palette.Count)
+            {
+                return;
+            }
+
+            for (var i = 0; i < Content.Length; i++)
+            {
+                if (Content[i] == colorIndex)
+                {
+                    Content[i] = StartColor;
+                }
+                if (Content[i] > colorIndex)
+                {
+                    Content[i]--;
+                }
+            }
+
+            Palette.RemoveAt(colorIndex);
+        }
+
         public void SetSize(int width, int height, bool forceSmaller)
         {
             if ((width < Width || height < Height) && !forceSmaller)
