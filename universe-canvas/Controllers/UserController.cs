@@ -17,7 +17,14 @@ public class UserController : ControllerBase
 	{
 		_userRepository = userRepository;
 	}
-	
+
+	[HttpGet]
+	[Route("isAuthenticated")]
+	public IActionResult IsAuthenticated()
+	{
+		return Ok();
+	}
+
 	[HttpPost]
 	[Route("addUser")]
 	public async Task<IActionResult> AddUser(UserRegisterDto userRegisterDto)
