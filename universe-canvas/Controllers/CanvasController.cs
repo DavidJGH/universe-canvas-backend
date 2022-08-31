@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using universe_canvas.Hubs;
 using universe_canvas.Models;
+using universe_canvas.Services;
 
 namespace universe_canvas.Controllers;
 
@@ -14,22 +15,24 @@ namespace universe_canvas.Controllers;
 public class CanvasController : ControllerBase
 {
     private readonly IHubContext<CanvasHub> _hub;
-        
-    public CanvasController(IHubContext<CanvasHub> hub)
+    private readonly ICanvasService _canvasService;
+
+    public CanvasController(IHubContext<CanvasHub> hub, ICanvasService canvasService)
     {
         _hub = hub;
+        _canvasService = canvasService;
     }
 
     [HttpPost]
     [Route("setSize")]
     public IActionResult SetSize(int width, int height, bool forceSmaller = false)
     {
-        if (width < (forceSmaller ? 0 : CanvasHub.Canvas.Width) || height < (forceSmaller ? 0 : CanvasHub.Canvas.Height) || width > 1000 || height > 1000)
+        if (width < (forceSmaller ? 0 : _canvasService.Canvas.Width) || height < (forceSmaller ? 0 : _canvasService.Canvas.Height) || width > 1000 || height > 1000)
         {
             return BadRequest("Dimension out of range");
         }
-        CanvasHub.Canvas.SetSize(width, height, forceSmaller);
-        _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
+        _canvasService.Canvas.SetSize(width, height, forceSmaller);
+        _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
         return Ok();
     }
         
@@ -41,8 +44,8 @@ public class CanvasController : ControllerBase
         {
             return BadRequest("Invalid hex code");
         }
-        CanvasHub.Canvas.Palette.Add(hexCode);
-        _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
+        _canvasService.Canvas.Palette.Add(hexCode);
+        _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
         return Ok();
     }
         
@@ -50,12 +53,12 @@ public class CanvasController : ControllerBase
     [Route("removeColor")]
     public IActionResult RemoveColor(int index)
     {
-        if (index < 0 || index >= CanvasHub.Canvas.Palette.Count)
+        if (index < 0 || index >= _canvasService.Canvas.Palette.Count)
         {
             return BadRequest("Index out of range");
         }
-        CanvasHub.Canvas.Palette.RemoveAt(index);
-        _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
+        _canvasService.Canvas.Palette.RemoveAt(index);
+        _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
         return Ok();
     }
         
@@ -63,12 +66,12 @@ public class CanvasController : ControllerBase
     [Route("removeLastColor")]
     public IActionResult RemoveLastColor()
     {
-        if (CanvasHub.Canvas.Palette.Count == 0)
+        if (_canvasService.Canvas.Palette.Count == 0)
         {
             return BadRequest("Palette empty");
         }
-        CanvasHub.Canvas.Palette.RemoveAt(CanvasHub.Canvas.Palette.Count-1);
-        _hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas);
+        _canvasService.Canvas.Palette.RemoveAt(_canvasService.Canvas.Palette.Count-1);
+        _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
         return Ok();
     }
         

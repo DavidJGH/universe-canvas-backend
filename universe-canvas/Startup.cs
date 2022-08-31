@@ -24,6 +24,7 @@ namespace universe_canvas
     {
         private ITimerService? _timerService;
         private ICanvasRepository? _canvasRepository;
+        private ICanvasService? _canvasService;
         
         public Startup(IConfiguration configuration)
         {
@@ -73,6 +74,7 @@ namespace universe_canvas
             services.Configure<DatabaseSettings>(
                 Configuration.GetSection("Database"));
             
+            services.AddSingleton<ICanvasService, CanvasService>();
             services.AddSingleton<ITimerService, TimerService>();
             services.AddSingleton<IPasswordHasher<User>, BCryptPasswordHasher<User>>();
             
@@ -82,7 +84,7 @@ namespace universe_canvas
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IHubContext<CanvasHub> hub, ITimerService? timerService, ICanvasRepository? canvasRepository)
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime, IWebHostEnvironment env, IHubContext<CanvasHub> hub, ITimerService timerService, ICanvasRepository canvasRepository, ICanvasService canvasService)
         {
             if (env.IsDevelopment())
             {
@@ -116,6 +118,7 @@ namespace universe_canvas
             
             _timerService = timerService;
             _canvasRepository = canvasRepository;
+            _canvasService = canvasService;
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
             
             // service startup
@@ -124,22 +127,22 @@ namespace universe_canvas
                 Canvas? canvas = await canvasRepository!.GetAsync();
                 if (canvas != null)
                 {
-                    CanvasHub.Canvas = canvas;
+                    canvasService.Canvas = canvas;
                 }
                 else
                 {
-                    await canvasRepository.InsertAsync(CanvasHub.Canvas);
-                    CanvasHub.Canvas.Id = (await canvasRepository.GetAsync())?.Id;
+                    await canvasRepository.InsertAsync(canvasService.Canvas);
+                    canvasService.Canvas.Id = (await canvasRepository.GetAsync())?.Id;
                 }
-                _timerService!.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", CanvasHub.Canvas));
-                _timerService!.AddTimer(10 * 60000, () =>
+                timerService.AddTimer(60000, () => hub.Clients.All.SendAsync("TransferCompleteCanvas", canvasService.Canvas));
+                timerService.AddTimer(10 * 60000, () =>
                 {
-                    Task.Run(async () => await canvasRepository.ReplaceAsync(CanvasHub.Canvas)).Wait();
+                    Task.Run(async () => await canvasRepository.ReplaceAsync(canvasService.Canvas)).Wait();
                 });
-                _timerService.AddTimer(500, () =>
+                timerService.AddTimer(500, () =>
                 {
-                    hub.Clients.All.SendAsync("TransferCanvasChanges", CanvasHub.CanvasChanges);
-                    CanvasHub.ClearChanges();
+                    hub.Clients.All.SendAsync("TransferCanvasChanges", canvasService.CanvasChanges);
+                    canvasService.CanvasChanges.Clear();
                 });
             }).Wait();
         }
@@ -149,7 +152,7 @@ namespace universe_canvas
             _timerService?.StopAllTimers();
             Task.Run(async () =>
             {
-                if (_canvasRepository != null) await _canvasRepository.ReplaceAsync(CanvasHub.Canvas);
+                if (_canvasRepository != null && _canvasService != null) await _canvasRepository.ReplaceAsync(_canvasService.Canvas);
             }).Wait();
         }
     }
