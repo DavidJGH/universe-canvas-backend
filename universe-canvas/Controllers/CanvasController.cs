@@ -74,5 +74,13 @@ public class CanvasController : ControllerBase
         _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
         return Ok();
     }
-        
+    
+    [HttpPost]
+    [Route("updatePalette")]
+    public IActionResult UpdatePalette(PaletteChangeDto newPalette)
+    {
+        _canvasService.Canvas.UpdatePalette(newPalette);
+        _hub.Clients.All.SendAsync("TransferCompleteCanvas", _canvasService.Canvas);
+        return Ok();
+    }
 }

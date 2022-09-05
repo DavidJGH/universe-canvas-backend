@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson;
@@ -86,6 +87,29 @@ namespace universe_canvas.Models
             Width = width;
             Content = contentList.ToArray();
         }
+
+        public void UpdatePalette(PaletteChangeDto newPalette)
+        {
+            StartColor = newPalette.StartColor;
+            
+            var mappingTable = new int[Palette.Count];
+            for (int i = 0; i < Palette.Count; i++)
+            {
+                var newIndex = Array.FindIndex(newPalette.Palette, (info) => info.OriginalIndex == i);
+                if (newIndex == -1)
+                {
+                    newIndex = StartColor;
+                }
+                mappingTable[i] = newIndex;
+            }
+            
+            for (var i = 0; i < Content.Length; i++)
+            {
+                Content[i] = mappingTable[Content[i]];
+            }
+
+            Palette = newPalette.Palette.Select(info => info.Color).ToList();
+        }
     }
 
     public class PartialCanvas
@@ -130,5 +154,17 @@ namespace universe_canvas.Models
             X = x;
             Y = y;
         }
+    }
+
+    public class PaletteChangeDto
+    {
+        public ColorChangeDto[] Palette { get; set; }
+        public int StartColor { get; set; }
+    }
+
+    public class ColorChangeDto
+    {
+        public int OriginalIndex { get; set; }
+        public string Color { get; set; }
     }
 }

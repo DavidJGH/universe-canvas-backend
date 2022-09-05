@@ -62,7 +62,7 @@ public class UserRepository : IUserRepository
 		  {
 			 new(ClaimTypes.Name, user.Username)                    
 		  }),
-		   Expires = DateTime.UtcNow.AddMinutes(60),
+		   Expires = DateTime.UtcNow.AddHours(3),
 		   SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey),SecurityAlgorithms.HmacSha256Signature)
 		};
 		var token = tokenHandler.CreateToken(tokenDescriptor);
